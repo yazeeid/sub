@@ -1,0 +1,35 @@
+name: Sync Submodule
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v2
+        with:
+          repository: yazeeid/main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: 'recursive'
+
+      - name: Set up Git config
+        run: |
+          git config --global user.name "yazeeid"
+          git config --global user.email "yazeedhamada4@gmail.com"
+
+      - name: Update sub_php_app
+        run: |
+          git clone https://yazeeid:${{ secrets.GITHUB_TOKEN }}@github.com/yazeeid/sub.git
+          cd sub
+          git submodule update --remote --merge
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Automated update of base_php_app submodule"
+            git push origin main
+          else
+            echo "No changes to commit"
+          fi
